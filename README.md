@@ -33,7 +33,7 @@ python setup.py install
 
 ```bash
 cd Em-Mcts
-python LLMExplorer_Socrates_re_Meta.py
+python LLMExplorer_Socrates_em_mcts.py
 ```
 
 ---
