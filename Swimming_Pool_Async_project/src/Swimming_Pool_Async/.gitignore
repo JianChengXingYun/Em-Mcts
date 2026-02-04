@@ -1,0 +1,6 @@
+*.html
+/BoT
+/buffer_of_thought_local
+/lib
+*.json
+*.faiss
