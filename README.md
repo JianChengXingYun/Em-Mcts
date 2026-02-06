@@ -2,7 +2,7 @@
 
 <div align="center">
   
-[![arXiv](https://img.shields.io/badge/arXiv-2505.23229-b31b1b?style=flat-square )](https://arxiv.org/abs/2505.23229 )
+[![arXiv](https://img.shields.io/badge/arXiv-2505.23229-b31b1b?style=flat-square )](https://arxiv.org/abs/2602.04248)
 
 <img width="1027" height="671" alt="企业微信截图_20260206090312" src="https://github.com/user-attachments/assets/eaff7000-bb40-491d-9d1b-e8a358a8eb0f" />
 
