@@ -62,7 +62,6 @@ Demonstrates excellent performance on complex reasoning benchmarks such as AIME2
 | **Async RAG** | Asynchronous FAISS vector search and JSON storage |
 | **State Tracking** | Complete search process recording and visualization |
 | **Configuration Management** | Centralized configuration file for all model parameters |
-| **Streaming Output** | Support for streaming responses and real-time feedback |
 
 ### 🔧 Technology Stack
 
