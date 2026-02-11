@@ -18,6 +18,7 @@ from Swimming_Pool_Async.Process_Controller import Process_Controller
 from transformers import AutoTokenizer
 from Swimming_Pool_Async.simple_rag import AsyncFaissRAG
 import uuid
+from config_loader import get_config_loader, init_config
 import logging
 from pydantic import BaseModel, Field
 
@@ -44,6 +45,12 @@ class LLMExplorer_Socrates:
                   auto_save_interval: int = 1,  # 每N次迭代自动保存一次
                   enable_visualization: bool = True
                     ):
+        # 初始化配置加载器
+        try:
+            init_config("config.json")
+        except Exception as e:
+            print(f"⚠️ 配置文件加载失败: {e}")
+
         # 初始化组件
         self.llm = llm
         self.api_llm = api_llm if api_llm else llm
@@ -110,10 +117,8 @@ class LLMExplorer_Socrates:
         self.use_meta_prompt = True
         self.use_enhancce = False
         self.context = ""
-        self.standard_criteria = self.prompter.default_standard_criteriaV2
         self.uid = ""
         self.evolved_meta_prompt = ""
-        self.evolved_judgeA_prompt = self.prompter.Self_Critique_Judge_exp_default_system
         self.node_meta_prompts = {}
         self.judgeA_meta_prompts = {}
         self.score_before_judgeA = 0
@@ -1037,12 +1042,22 @@ class LLMExplorer_Socrates:
         return html
     def _get_default_model_configs(self):
         """获取默认的模型配置列表"""
+        try:
+            # 尝试从配置文件加载
+            config = get_config_loader()
+            gen_models = config.get_gen_models()
+            if gen_models:
+                return gen_models
+        except Exception as e:
+            print(f"⚠️ 从配置文件加载模型配置失败: {e}")
+
+        # 如果配置文件加载失败，使用默认配置
         return {
             "gemini-3-pro-preview": {
                 "model_name": "gemini-3-pro-preview",
-                "api_base": '<your-base-url>',
+                "api_base": 'https://jeniya.cn/v1',
                 "api_type": "openai",
-                "api_key": '<your-api-key>',
+                "api_key": '',  # 从环境变量或配置文件获取
                 "anony_only": False,
                 "sampling_params": {
                     "extra_body": {"enable_thinking": True}
@@ -2759,29 +2774,55 @@ class LLMExplorer_Socrates:
 
 # --- 异步运行入口 ---
 async def run_llm_query():
+    # 初始化配置加载器
+    init_config("config.json")
+    config = get_config_loader()
+
     # 模拟初始化逻辑
-    tokenizer_path = "Qwen2.5-7B-Instruct-AWQ"
+    tokenizer_path = "tiktoken"
     try:
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, trust_remote_code=True)
-    except:
-        tokenizer = None # Mock
-        
+    except Exception as e:
+        print(f"⚠️ 加载 tokenizer 失败: {e}")
+        tokenizer = None  # 使用 None，代码会自动处理
+
     query = {}
     query["prompt"] = [{"role":"system", "content": "You are a helpful assistant."},
                        {"role":"user", "content": """最近感到很焦虑，如何缓解焦虑？"""}]
+
+    # 从配置文件获取 gen 模型配置
+    gen_model_config = config.get_gen_model("gemini-3-pro-preview")
+    judge_model_config = config.get_judge_model("gemini-3-pro-preview")
     llm = LLM_Core(
         tokenizer,
         use_async=True,
-        api_model="gpt-4.1-2025-04-14",
-        base_url="<your-base-url>",
-        api_key='<your-api-key>')
-    rag = await AsyncFaissRAG.create(api_url="http://localhost:60046/emb/v1")
-    
+        api_model=gen_model_config["model_name"],
+        base_url=gen_model_config["api_base"],
+        api_key=gen_model_config["api_key"]
+    )
+    judge_llm = LLM_Core(
+        tokenizer,
+        use_async=True,
+        api_model=judge_model_config["model_name"],
+        base_url=judge_model_config["api_base"],
+        api_key=judge_model_config["api_key"]
+    )
+
+    # 从配置文件获取 emb 模型配置
+    emb_model_config = config.get_emb_model("text-embedding-3-small")
+
+    rag = await AsyncFaissRAG.create(
+        model_name=emb_model_config["model_name"],
+        base_url=emb_model_config["api_base"],
+        api_key=emb_model_config["api_key"]
+    )
+
     # [新增] 启用状态追踪和可视化的示例
     explorer = LLMExplorer_Socrates(
-        llm=llm, 
-        rag=rag, 
-        max_iter=2, 
+        llm=llm,
+        api_llm=judge_llm,
+        rag=rag,
+        max_iter=2,
         use_diversity_fusion=False,
         # [新功能] 启用状态追踪和可视化
         enable_state_tracking=True,           # 开启状态记录
@@ -2790,20 +2831,20 @@ async def run_llm_query():
         enable_visualization=True,              # 开启可视化
         use_expert_prompt=True
     )
-    
+
     print("🚀 开始 Em-Mcts Arena树搜索 (已启用状态追踪)")
     dicts = await explorer.main_loop(query)
     print("✅ 搜索完成！")
-    
+
     print(f"📊 最终结果: {dicts[0]}")
-    
+
     # [新增] 演示状态恢复功能
     print("\n🔄 演示状态恢复功能...")
     if hasattr(explorer, 'state_file') and explorer.state_file:
         # 创建新的探索器实例
         new_explorer = LLMExplorer_Socrates(
-            llm=llm, 
-            rag=rag, 
+            llm=llm,
+            rag=rag,
             max_iter=8,  # 可以设置更多迭代
             use_diversity_fusion=True,
             enable_state_tracking=True,
@@ -2811,11 +2852,11 @@ async def run_llm_query():
             auto_save_interval=2,
             enable_visualization=True
         )
-        
+
         # 加载之前的状态
         if new_explorer.load_state(explorer.state_file):
             print("✅ 状态恢复成功！可以继续rollout...")
-            
+
             # 继续搜索更多迭代
             print("🔄 继续进行树搜索...")
             continued_dicts = await new_explorer.main_loop(query)
@@ -2823,7 +2864,7 @@ async def run_llm_query():
             print(f"📊 续搜索结果: {continued_dicts[0]}")
         else:
             print("❌ 状态恢复失败")
-    
+
     # [新增] 输出文件位置信息
     if hasattr(explorer, 'visualization_file') and explorer.visualization_file:
         print(f"\n📈 可视化文件已生成: {explorer.visualization_file}")
@@ -2835,31 +2876,43 @@ async def run_llm_query():
 async def demo_state_recovery(state_file_path: str):
     """演示如何从保存的状态恢复并继续rollout"""
     print(f"🔄 从状态文件恢复: {state_file_path}")
-    
-    # 初始化LLM和RAG（实际项目中应该保持一致）
+
+    # 初始化配置加载器
+    init_config("config.json")
+    config = get_config_loader()
+
+    # 从配置文件获取 gen 模型配置
+    gen_model_config = config.get_gen_model("gemini-3-pro-preview")
     llm = LLM_Core(
         None,  # tokenizer
         use_async=True,
-        api_model="gpt-4.1-nano-2025-04-14",
-        base_url='<your-base-url>',
-        api_key='<your-api-key>'
+        api_model=gen_model_config["model_name"],
+        base_url=gen_model_config["api_base"],
+        api_key=gen_model_config["api_key"]
     )
-    rag = await AsyncFaissRAG.create() #api_url="http://172.21.30.231:60046/emb/v1"
-    
+
+    # 从配置文件获取 emb 模型配置
+    emb_model_config = config.get_emb_model(" text-embedding-3-small")
+    rag = await AsyncFaissRAG.create(
+        model_name=emb_model_config["model_name"],
+        base_url=emb_model_config["api_base"],
+        api_key=emb_model_config["api_key"]
+    )
+
     # 创建探索器并恢复状态
     explorer = LLMExplorer_Socrates(
-        llm=llm, 
-        rag=rag, 
+        llm=llm,
+        rag=rag,
         max_iter=10,  # 可以设置更多迭代继续搜索
         use_diversity_fusion=True,
         enable_state_tracking=True,
         enable_visualization=True
     )
-    
+
     if explorer.load_state(state_file_path):
         print(f"✅ 状态恢复成功！当前迭代: {explorer.iter}")
         print(f"📊 当前节点数: {len(explorer.answers_list)}")
-        
+
         # 构建继续搜索所需的inputs（从状态中恢复）
         inputs = {
             "prompt": [
@@ -2869,7 +2922,7 @@ async def demo_state_recovery(state_file_path: str):
             "domain": explorer.domain,
             "class_tag": explorer.class_tag
         }
-        
+
         # 继续搜索
         print("🚀 继续搜索...")
         results = await explorer.main_loop(inputs)

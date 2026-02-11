@@ -1,0 +1,70 @@
+{
+  "gen_models": {
+    "gemini-3-pro-preview": {
+      "model_name": "gemini-3-pro-preview",
+      "api_base": "<your-api-base>",
+      "api_key": "<your-api-key>",
+      "anony_only": false,
+      "sampling_params": {
+        "extra_body": {
+          "enable_thinking": true
+        }
+      },
+      "model_link": "https://aistudio.google.com/app/prompts/new_chat?model=gemini-3-pro-preview",
+      "description": "From Google",
+      "organization": "Google",
+      "license": "Proprietary",
+      "sampling_weight": 1
+    }
+  },
+  "judge_models": {
+    "gemini-3-pro-preview": {
+      "model_name": "gemini-3-pro-preview",
+      "api_base": "<your-api-base>",
+      "api_type": "openai",
+      "api_key": "<your-api-key>",
+      "temperature": 0.95,
+      "top_p": 0.9,
+      "extra_body": {}
+    },
+    "default": {
+      "temperature": 0.95,
+      "top_p": 0.9,
+      "extra_body": {}
+    }
+  },
+  "mem_models": {
+    "gpt-4.1-mini-2025-04-14": {
+      "model_name": "gpt-4.1-mini-2025-04-14",
+      "api_base": "<your-api-base>",
+      "api_type": "openai",
+      "api_key": "<your-api-key>",
+      "temperature": 0.95,
+      "top_p": 0.9,
+      "extra_body": {}
+    },
+    "default": {
+      "temperature": 0.95,
+      "top_p": 0.9,
+      "extra_body": {}
+    }
+  },
+  "emb_models": {
+    "qwen3-emb": {
+      "model_name": "qwen3-emb",
+      "api_base": "http://localhost:6007/v1",
+      "api_key": "EMPTY"
+    },
+    "text-embedding-3-small": {
+      "model_name": "text-embedding-3-small",
+      "api_base": "<your-api-base>",
+      "api_key": "<your-api-key>"
+    }
+  },
+  "api_config": {
+    "default_base_url": "https://jeniya.cn/v1",
+    "default_api_key": "<your-api-key>",
+    "timeout": 30,
+    "max_retries": 6
+  }
+}

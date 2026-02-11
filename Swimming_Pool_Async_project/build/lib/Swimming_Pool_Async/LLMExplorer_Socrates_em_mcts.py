@@ -45,12 +45,6 @@ class LLMExplorer_Socrates:
                   auto_save_interval: int = 1,  # 每N次迭代自动保存一次
                   enable_visualization: bool = True
                     ):
-        # 初始化配置加载器
-        try:
-            init_config("config.json")
-        except Exception as e:
-            print(f"⚠️ 配置文件加载失败: {e}")
-
         # 初始化组件
         self.llm = llm
         self.api_llm = api_llm if api_llm else llm
@@ -1042,22 +1036,12 @@ class LLMExplorer_Socrates:
         return html
     def _get_default_model_configs(self):
         """获取默认的模型配置列表"""
-        try:
-            # 尝试从配置文件加载
-            config = get_config_loader()
-            gen_models = config.get_gen_models()
-            if gen_models:
-                return gen_models
-        except Exception as e:
-            print(f"⚠️ 从配置文件加载模型配置失败: {e}")
-
-        # 如果配置文件加载失败，使用默认配置
         return {
             "gemini-3-pro-preview": {
                 "model_name": "gemini-3-pro-preview",
                 "api_base": 'https://jeniya.cn/v1',
                 "api_type": "openai",
-                "api_key": '',  # 从环境变量或配置文件获取
+                "api_key": 'sk-NuO4dbNTkXXi5zWYkLFnhyug1kkqjeysvrb74pA9jTGfz8cm',
                 "anony_only": False,
                 "sampling_params": {
                     "extra_body": {"enable_thinking": True}
@@ -2782,9 +2766,8 @@ async def run_llm_query():
     tokenizer_path = "tiktoken"
     try:
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, trust_remote_code=True)
-    except Exception as e:
-        print(f"⚠️ 加载 tokenizer 失败: {e}")
-        tokenizer = None  # 使用 None，代码会自动处理
+    except:
+        tokenizer = None # Mock
 
     query = {}
     query["prompt"] = [{"role":"system", "content": "You are a helpful assistant."},
@@ -2792,8 +2775,6 @@ async def run_llm_query():
 
     # 从配置文件获取 gen 模型配置
     gen_model_config = config.get_gen_model("gemini-3-pro-preview")
-    judge_model_config = config.get_judge_model("gemini-3-pro-preview")
-    mem_model_config = config.get_mem_model("gpt-4.1-mini-2025-04-14")
     llm = LLM_Core(
         tokenizer,
         use_async=True,
@@ -2801,23 +2782,9 @@ async def run_llm_query():
         base_url=gen_model_config["api_base"],
         api_key=gen_model_config["api_key"]
     )
-    judge_llm = LLM_Core(
-        tokenizer,
-        use_async=True,
-        api_model=judge_model_config["model_name"],
-        base_url=judge_model_config["api_base"],
-        api_key=judge_model_config["api_key"]
-    )
-    mem_llm = LLM_Core(
-        tokenizer,
-        use_async=True,
-        api_model=mem_model_config["model_name"],
-        base_url=mem_model_config["api_base"],
-        api_key=mem_model_config["api_key"]
-    )
-    # 从配置文件获取 emb 模型配置
-    emb_model_config = config.get_emb_model("text-embedding-3-small")
 
+    # 从配置文件获取 emb 模型配置
+    emb_model_config = config.get_emb_model("gemini-embedding-001")
     rag = await AsyncFaissRAG.create(
         model_name=emb_model_config["model_name"],
         base_url=emb_model_config["api_base"],
@@ -2827,8 +2794,6 @@ async def run_llm_query():
     # [新增] 启用状态追踪和可视化的示例
     explorer = LLMExplorer_Socrates(
         llm=llm,
-        api_llm=judge_llm,
-        api_llm2=mem_llm,
         rag=rag,
         max_iter=2,
         use_diversity_fusion=False,
@@ -2900,7 +2865,7 @@ async def demo_state_recovery(state_file_path: str):
     )
 
     # 从配置文件获取 emb 模型配置
-    emb_model_config = config.get_emb_model(" text-embedding-3-small")
+    emb_model_config = config.get_emb_model("gemini-embedding-001")
     rag = await AsyncFaissRAG.create(
         model_name=emb_model_config["model_name"],
         base_url=emb_model_config["api_base"],

@@ -1,0 +1,7 @@
+pyvis
+aiofiles
+openai
+transformers
+faiss-gpu
+numpy==1.26.4
+aiohttp

@@ -1,0 +1,20 @@
+Metadata-Version: 2.4
+Name: Swimming_Pool_Async
+Version: 0.1
+Summary: A package for LLM and process control
+Home-page: https://github.com/Minami-su/Swimming_Pool
+Author: HaoLu
+Author-email: 2012456373@qq.com
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.10
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: home-page
+Dynamic: requires-python
+Dynamic: summary
+
+A longer description of your package
