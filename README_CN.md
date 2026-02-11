@@ -6,17 +6,13 @@
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-<img width="1027" height="671" alt="企业微信截图_20260206090312" src="https://github.com/user-attachments/assets/eaff7000-bb40-491d-9d1b-e8a358a8eb0f" />
-
-
-
 **Empirical-MCTS**: 一个双循环推理时间缩放框架，将无状态蒙特卡洛树搜索转变为连续经验学习。通过统一实时元提示进化（PE-EMP）与全局记忆优化，使大语言模型能够跨问题积累和重用推理智慧。
 
 </div>
 ---
-
+<img width="1027" height="671" alt="企业微信截图_20260206090312" src="https://github.com/user-attachments/assets/eaff7000-bb40-491d-9d1b-e8a358a8eb0f" />
+---
 <img width="484" height="839" alt="企业微信截图_20260206091122" src="https://github.com/user-attachments/assets/5232ff91-3b8f-482f-a4f0-2ee75824f549" />
-
 ---
 <img width="1499" height="525" alt="企业微信截图_20260206091136" src="https://github.com/user-attachments/assets/451c5052-f1f3-4330-bfee-3a5c5728a9e9" />
 ---
